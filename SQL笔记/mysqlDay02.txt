@@ -1,0 +1,131 @@
+/*
+笛卡尔积：
+    设A、B集合，用A中的元素x作第一元素，
+    B中的元素y作第二元素，构成有序对，所有
+    这样的有序对组成的集合，叫做A和B的笛卡尔积，
+    记作AxB。
+    {a,b}   {1,2,3}   {a1,a2,a3,b1,b2,b3}
+  注意：
+    a.两个表关联查询，如果不加公共列，查询的结果就是笛卡尔积。
+    b.笛卡尔积里很多记录都是没有意义的。
+    c.两个表关联查询，无体检加上公共列，避免笛卡尔积
+*/
+select * from nation,tank
+where nation.ID=tank.nid
+
+--统计每个国家生产了几种坦克？
+select nation.`NAME`,count(*) 
+from nation,tank 
+where nation.ID=tank.nid 
+group by nation.`NAME`
+
+--能生产2种以上的坦克是哪些国家?
+select nation.`NAME`,count(*) 
+from nation,tank
+where nation.ID=tank.nid
+group by nation.`NAME`
+having count(*)>=2
+
+--哪些国家只能生产一种坦克？
+select nation.`NAME`,count(*) 
+from nation,tank
+where nation.ID=tank.nid
+group by nation.`NAME`
+having count(*)=1
+
+#1.表连接
+##1.1 交叉连接
+-- from 表1 cross join 表2
+--- 注意：查询结果是笛卡尔积，基本不用
+select * from nation cross join tank
+
+##1.2 内连接
+-- from 表1 [inner] join 表2 on 表1和表2的公共列
+--- 注意：查询结果是两个表共同的部分
+select * from nation join tank on nation.id=tank.nid
+
+##1.3 外连接
+###1.3.1 左连接
+--- from 表1 left join 表2 on 表1和表2的公共列
+---- 注意：以左边的表为基础，去连接右边的表。
+select * from nation left join tank on nation.id=tank.nid
+
+-- 左外连接 oracle 特有
+select * from nation,tank
+where nation.id=tank.nid(+)
+
+###1.3.2 右连接
+--- from 表1 rignt join 表2 on 表1和表2的公共列
+---- 注意：以右边的表为基础，去连接左边的表。
+select * from nation right join tank on nation.id=tank.nid
+
+-- 右外连接 oracle 特有
+select * from nation,tank
+where nation.id(+)=tank.nid
+
+###1.3.3 全连接 oracle好用！mysql不好用！
+-- from 表1 full join 表2 on 表1和表2的公共列
+select * from nation full join tank on nation.id=tank.nid
+
+##1.4 自连接
+-- 连接的两个表，其实是一个表。为了区分每一次的使用，给表取不同的别名。
+-- 查询员工和直属经理的工资差距
+select emp.name,emp.salary,mg.name,mg.salary,mg.salary-emp.salary 
+from emptest emp
+left join emptest mg on emp.mgrname=mg.name
+
+#2 交集、并集、差集
+##2.1 利用union/union all 得到并集
+-- union：会自动去除重复的数据
+-- union all：会允许重复的数据
+
+--查询中国、美国生产的坦克
+select nation.name,tank.name
+from nation,tank
+where nation.id=tank.nid
+and nation.name in ('中国','美国')
+union
+select nation.name,tank.name
+from nation,tank
+where nation.id=tank.nid
+and nation.name in ('中国','德国')
+
+##2.2 利用minus得到差集  oracle好用！mysql不好用
+select nation.name,tank.name
+from nation,tank
+where nation.id=tank.nid
+and nation.name in ('中国','美国')
+minus
+select nation.name,tank.name
+from nation,tank
+where nation.id=tank.nid
+and nation.name in ('中国','德国')
+
+##2.3 利用intersect 得到交集  oracle好用！mysql不好用
+select nation.name,tank.name
+from nation,tank
+where nation.id=tank.nid
+and nation.name in ('中国','美国')
+minus
+select nation.name,tank.name
+from nation,tank
+where nation.id=tank.nid
+and nation.name in ('中国','德国')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

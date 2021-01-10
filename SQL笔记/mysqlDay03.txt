@@ -1,0 +1,155 @@
+select 字段列表 from 表名
+[where 过滤条件]
+[group by 分组 [having 分组后过滤]]
+[order by 排序字段 asc|desc]
+
+--思考：大物的最高分和最低分
+select subject.name,max(score),min(score)
+from subject,score
+where subject.id=score.sbjid
+and subject.name='大物'
+group by subject.name
+
+#1.1 select 子查询  把查询结果当作一个字段来使用
+--思考：大物的最高分和最低分
+--子查询：查询大物最高分
+select max(score) from score where sbjid='3'
+--子查询：查询大物最低分
+select min(score) from score where sbjid='3'
+--最终查询结果
+select name,子查询,子查询 from subject where name='大物'
+
+#1.2 where 子查询：
+--例子1：查询结果当成一个数据来使用
+--思考：高于平均分的纪录
+--子查询：查询平均分
+select avg(score) from score
+--最终查询：
+select stu.name,subject.name,score
+from stu,subject,score
+where stu.id=score.sid
+ and subject.id=score.sbjid
+ and score>=(select avg(score) from score)
+--例子2：查询结果当作一个集合来使用
+--思考：列举出有考试成绩的科目
+--方法1：
+select distinct subject.name
+from subject
+left join score on subject.id=score.sbjid
+where score.id is not null
+
+--方法2：
+--子查询：查询有考试成绩的编号
+select distinct sbjid
+from score
+--最终查询：
+select name
+from subject
+where id in (select distinct sbjid
+from score)
+
+#1.3 from 子查询
+--查询结果当做一个表来使用
+--找到男员工中工资最低者和女员工中工资最低者
+--子查询：查询男女员工的最低工资
+select sex,min(salary)
+from member 
+group by sex
+--最终查询：
+select member.*
+from member,(select sex,min(salary) 最低工资
+from member group by sex) mm
+where mamber.sex=mm.sex
+ and member.salary=mm.最低工资
+
+--思考：找出高于公司所有员工的平均工资的男员工数和女员工数
+
+select sex,count(*) 
+from member
+where salary>=(select avg(salary) from member)
+group by sex
+
+--思考：得到每个部门最高工资对应的员工
+--子查询：查询每个部门最高工资
+select department,max(salary) maxSalary
+from member
+group by department
+--最终查询
+select member.* from member,(select department,max(salary) maxSalary
+from member
+group by department) mm
+where mm.department=member.department
+   and mm.maxSalary=member.salary
+
+
+--思考：列举出考试成绩在60分至80分之间的人名及成绩
+--子查询：
+select score from score where score bwteen 60 and 80
+--最终查询：
+select stu.name,score from stu,score
+where stu.id=score.sid
+ and score in(select score from score where score bwteen 60 and 80)
+
+--思考：查询高于各科平均分的学生考试成绩
+      --查询结果集中，显示的字段有：学号，名字，科目，分数，该科目平均分
+select sbjid,avg(score) 平均分
+from score
+group by sbjid
+
+select stu.id,stu.name,subject.name,score.score,mm.平均分
+from stu,subject,score,(select sbjid,avg(score) 平均分
+from score
+group by sbjid) mm
+where stu.id=score.sid
+and subject.id=score.sbjid
+and mm.sbjid=subject.id
+and score.score>mm.平均分
+
+--思考：统计每个部门最低工资者信息
+select department,min(salary) 最低工资
+from member
+group by department
+
+select member.* 
+from member,(select department,min(salary) 最低工资
+from member
+group by department) mm
+where mm.department=member.department
+and member.salary=mm.最低工资
+
+--思考：统计高于各部门平均工资的员工信息
+select department,avg(salary)
+from member
+group by department
+
+select member.* 
+from member,(select department,avg(salary) 平均工资
+from member
+group by department) mm
+where mm.department=member.department
+and member.salary>mm.平均工资
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
